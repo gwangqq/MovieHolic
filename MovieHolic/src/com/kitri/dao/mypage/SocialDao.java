@@ -1,6 +1,5 @@
 package com.kitri.dao.mypage;
 
-import java.beans.Statement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,12 +33,14 @@ public class SocialDao {
 //-----------------------------[social.jsp]-----------------------
 //	게시해야하는 TotalCnt 구하는 메소드
 	public static int selectTotalCnt(String userid) {
-		String selectTotalCntSQL = "select count(*)\r\n"
-				+ "from (select rownum no, social.followingid, social.name, social.list_count, social.best_count\r\n"
-				+ "        from(select ms.followingid, mu.name, mu.list_count, mu.best_count\r\n"
-				+ "        from mh_social ms, mh_user mu\r\n" + "        where ms.userid = ?\r\n"
-				+ "        and mu.enable = 1\r\n" + "        and ms.followingid = mu.userid\r\n"
-				+ "        order by best_count DESC) social)";
+		String selectTotalCntSQL = "select count(*)\r\n" + 
+				"				from (select rownum no, social.followingid, social.name, social.list_count, social.best_count\r\n" + 
+				"				       from(select ms.followingid, mu.name, mu.list_count, mu.best_count \r\n" + 
+				"                        from (select userid, followingid, postdate\r\n" + 
+				"                            from mh_social \r\n" + 
+				"                            where userid = ?) ms, mh_user mu \r\n" + 
+				"                        where ms.followingid = mu.userid\r\n" + 
+				"				        order by best_count DESC) social)";
 		int totalCnt = -1;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -49,8 +50,8 @@ public class SocialDao {
 		try {
 			conn = DBConnection.makeConnection();
 			pstmt = conn.prepareStatement(selectTotalCntSQL);
-			pstmt.setString(1, userid);
 			rs = pstmt.executeQuery();
+			pstmt.setString(1, userid);
 			rs.next();
 			totalCnt = rs.getInt(1);
 		} catch (SQLException e) {
@@ -65,12 +66,19 @@ public class SocialDao {
 	public static List<SocialDto> selectByRows(String userid, int startRow, int endRow) {
 
 		List<SocialDto> list = new ArrayList<>();
-		String selectByRowsSQL = "select *\r\n"
-				+ "from(select rownum no, social.followingid, social.name, social.list_count, social.best_count\r\n"
-				+ "        from(select ms.followingid, mu.name, mu.list_count, mu.best_count\r\n"
-				+ "        from mh_social ms, mh_user mu\r\n" + "        where ms.userid = ?\r\n"
-				+ "        and mu.enable = 1\r\n" + "        and ms.followingid = mu.userid\r\n"
-				+ "        order by best_count DESC) social)\r\n" + "where no between ? and ?";
+		
+		
+		
+		String selectByRowsSQL = "select *\r\n" + 
+				"				from(select rownum no, social.followingid, social.name, social.list_count, social.best_count\r\n" + 
+				"				 from(select ms.followingid, mu.name, mu.list_count, mu.best_count \r\n" + 
+				"                        from (select userid, followingid, postdate\r\n" + 
+				"                            from mh_social \r\n" + 
+				"                            where userid = ?) ms, mh_user mu \r\n" + 
+				"                        where ms.followingid = mu.userid\r\n" + 
+				"                        and enable =0\r\n" + 
+				"				        order by best_count DESC) social)\r\n" + 
+				"            where no between ? and ?";
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -104,12 +112,14 @@ public class SocialDao {
 	}
 
 	public static int selectTotalCnt2(String userid) {
-		String selectTotalCntSQL = "select count(*)\r\n"
-				+ "from (select rownum no, social.userid, social.name, social.list_count, social.best_count\r\n"
-				+ "        from(select ms.userid, mu.name, mu.list_count, mu.best_count\r\n"
-				+ "        from mh_social ms, mh_user mu\r\n" + "        where ms.followingid = ? \r\n"
-				+ "        and mu.enable = 1 \r\n" + "        and ms.userid = mu.userid \r\n"
-				+ "        order by best_count DESC) social)";
+		String selectTotalCntSQL = "select count(*)\n" + 
+				"							from (select rownum no, social.followingid, social.name, social.list_count, social.best_count\n" + 
+				"							       from(select ms.followingid, mu.name, mu.list_count, mu.best_count \n" + 
+				"				                        from (select userid, followingid, postdate\n" + 
+				"				                            from mh_social \n" + 
+				"				                         where userid = ?) ms, mh_user mu \n" + 
+				"				                       where ms.followingid = mu.userid\n" + 
+				"							        order by best_count DESC) social)";
 		int totalCnt = -1;
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -134,12 +144,16 @@ public class SocialDao {
 	public static List<SocialDto> selectByRows2(String userid, int startRow, int endRow) {
 
 		List<SocialDto> list = new ArrayList<>();
-		String selectByRowsSQL = "select *\r\n"
-				+ "from(select rownum no, social.userid, social.name, social.list_count, social.best_count\r\n"
-				+ "        from(select ms.userid, mu.name, mu.list_count, mu.best_count\r\n"
-				+ "        from mh_social ms, mh_user mu\r\n" + "        where ms.followingid = ?\r\n"
-				+ "        and mu.enable = 1\r\n" + "        and ms.userid = mu.userid\r\n"
-				+ "        order by best_count DESC) social)\r\n" + "where no between ? and ?";
+		String selectByRowsSQL = "select *\n" + 
+				"				from(select rownum no, social.followingid, social.name, social.list_count, social.best_count\n" + 
+				"				from(select ms.followingid, mu.name, mu.list_count, mu.best_count \n" + 
+				"				         from (select userid, followingid, postdate\n" + 
+				"				               from mh_social \n" + 
+				"				               where userid = ?) ms, mh_user mu\n" + 
+				"				            where ms.followingid = mu.userid\n" + 
+				"				           and enable =0\\r\\n\" + \r\n" + 
+				"					        order by best_count DESC) social)\n" + 
+				"				   where no between ? and ?";
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
